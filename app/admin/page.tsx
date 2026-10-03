@@ -1,0 +1,1 @@
+export default function Admin(){return <main className="p-6"><h1 className="text-4xl">Hiring dashboard</h1><p className="mt-4">Sign in through the configured identity provider to review the latest applications and their audit context.</p></main>}

@@ -1,0 +1,5 @@
+import crypto from 'crypto';
+export const noStore={'Cache-Control':'no-store'};
+export function safeError(message:string,status=400){return Response.json({error:message},{status,headers:noStore});}
+export function ipHash(request:Request){const ip=request.headers.get('x-forwarded-for')?.split(',')[0]||'unknown';const salt=process.env.IP_HASH_SALT;if(!salt && process.env.NODE_ENV==='production')throw new Error('IP_HASH_SALT missing');return crypto.createHash('sha256').update(`${ip}:${salt||'development-only'}`).digest('hex');}
+export async function verifyTurnstile(token:string|undefined,ip:string){const secret=process.env.TURNSTILE_SECRET;if(!secret){if(process.env.NODE_ENV==='production')return false;console.warn('Turnstile bypassed in development');return true;}const body=new URLSearchParams({secret,response:token||'',remoteip:ip});const r=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',body});return (await r.json() as {success:boolean}).success;}

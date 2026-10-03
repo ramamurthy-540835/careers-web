@@ -1,0 +1,2 @@
+@tailwind base;@tailwind components;@tailwind utilities;
+:root{color:#0B2E33;background:#fff}body{margin:0;font-family:Inter,system-ui,sans-serif}h1,h2{font-family:Cambria,Georgia,serif}.field{width:100%;min-height:44px;border:1px solid #9ca3af;border-radius:.4rem;padding:.7rem;font-size:16px}.btn{min-height:44px;border-radius:.4rem;background:#1B6B5A;color:#fff;padding:.7rem 1rem;font-weight:700}.card{border:1px solid #d1d5db;border-radius:.7rem;padding:1rem}

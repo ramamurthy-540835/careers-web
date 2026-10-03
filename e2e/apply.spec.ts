@@ -1,0 +1,1 @@
+import {test,expect} from '@playwright/test';test('passport gate blocks progress',async({page})=>{await page.goto('/apply');await page.getByRole('button',{name:'Continue'}).click();await page.getByRole('checkbox',{name:'I hold a valid passport'}).uncheck();await expect(page.getByText('A valid passport is mandatory')).toBeVisible();});
