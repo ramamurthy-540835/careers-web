@@ -107,7 +107,14 @@ export default function Apply() {
       <p className="my-4" aria-live="polite">
         Step {step} of 4
       </p>
-      <form onSubmit={handleSubmit(submit)} className="space-y-4">
+    <form
+      onSubmit={handleSubmit(submit, (validationErrors) =>
+        setError(
+          `Please correct the required fields before submitting: ${Object.keys(validationErrors).join(", ")}.`,
+        ),
+      )}
+      className="space-y-4"
+    >
         {step === 1 && (
           <>
             <Input
