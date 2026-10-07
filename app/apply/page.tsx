@@ -2,7 +2,11 @@
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { applicationSchema, type ApplicationInput } from "@/lib/schema";
+import {
+  applicationSchema,
+  applicationStepSchemas,
+  type ApplicationInput,
+} from "@/lib/application-schema";
 import { useRouter } from "next/navigation";
 const defaults: any = {
   preferred_postings: [],
@@ -21,17 +25,41 @@ const defaults: any = {
   source: "linkedin",
   utm: {},
 };
+const draftKey = "nelture-application-draft";
+const fieldStep: Record<string, number> = {
+  full_name: 1,
+  email: 1,
+  whatsapp: 1,
+  country_of_residence: 1,
+  nationality: 1,
+  passport_valid: 2,
+  passport_expiry: 2,
+  willing_to_travel: 2,
+  role: 3,
+  experience_years: 3,
+  highest_education: 3,
+  certifications: 3,
+  prism_ai_ready: 3,
+  motivation: 4,
+  sample_url: 4,
+  consent_dpdp: 4,
+  consent_contact: 4,
+};
 export default function Apply() {
   const router = useRouter(),
     [step, setStep] = useState(1),
     [file, setFile] = useState<File | null>(null),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [hydrated, setHydrated] = useState(false);
   const {
     register,
     watch,
     handleSubmit,
     control,
+    getValues,
+    reset,
+    setError: setFieldError,
     formState: { errors },
   } = useForm<ApplicationInput>({
     resolver: zodResolver(applicationSchema),
@@ -43,17 +71,57 @@ export default function Apply() {
     name: "certifications",
   });
   useEffect(() => {
-    const saved = localStorage.getItem("nelture-apply");
-    if (saved) Object.assign(defaults, JSON.parse(saved));
-  }, []);
+    try {
+      const saved = sessionStorage.getItem(draftKey);
+      if (saved) reset({ ...defaults, ...JSON.parse(saved) });
+    } catch {
+      sessionStorage.removeItem(draftKey);
+    }
+    setHydrated(true);
+  }, [reset]);
   useEffect(() => {
-    const s = watch((v) =>
-      localStorage.setItem("nelture-apply", JSON.stringify(v)),
-    );
+    if (!hydrated) return;
+    const s = watch((v) => sessionStorage.setItem(draftKey, JSON.stringify(v)));
     return () => s.unsubscribe();
-  }, [watch]);
+  }, [watch, hydrated]);
   const passport = watch("passport_valid"),
     travel = watch("willing_to_travel");
+  function showFieldErrors(fieldErrors: Record<string, string>) {
+    const fields = Object.keys(fieldErrors);
+    fields.forEach((field) =>
+      setFieldError(field as keyof ApplicationInput, {
+        type: "server",
+        message: fieldErrors[field],
+      }),
+    );
+    const firstStep = Math.min(...fields.map((field) => fieldStep[field] || 4));
+    setStep(firstStep);
+    setError("Please correct the highlighted fields.");
+  }
+  function next() {
+    const parsed =
+      applicationStepSchemas[step as 1 | 2 | 3].safeParse(getValues());
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {};
+      parsed.error.issues.forEach((issue) => {
+        const field = String(issue.path[0]);
+        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
+      });
+      showFieldErrors(fieldErrors);
+      return;
+    }
+    setError("");
+    setStep(step + 1);
+  }
+  function onInvalid(validationErrors: any) {
+    const fieldErrors = Object.fromEntries(
+      Object.entries(validationErrors).map(([field, value]: [string, any]) => [
+        field,
+        value?.message || "This field is required.",
+      ]),
+    );
+    showFieldErrors(fieldErrors);
+  }
   async function submit(data: ApplicationInput) {
     if (!file) return setError("Please attach your CV.");
     setBusy(true);
@@ -68,7 +136,10 @@ export default function Apply() {
         }),
       });
       const out = await res.json();
-      if (!res.ok) throw new Error(out.error);
+      if (!res.ok) {
+        if (out.fieldErrors) showFieldErrors(out.fieldErrors);
+        throw new Error(out.error);
+      }
       const up = await fetch(out.upload_url, {
         method: "PUT",
         headers: { "content-type": file.type },
@@ -89,7 +160,7 @@ export default function Apply() {
       );
       const final = await done.json();
       if (!done.ok) throw new Error(final.error);
-      localStorage.removeItem("nelture-apply");
+      sessionStorage.removeItem(draftKey);
       router.push(`/apply/success/${out.application_id}`);
     } catch (e) {
       setError(
@@ -107,14 +178,7 @@ export default function Apply() {
       <p className="my-4" aria-live="polite">
         Step {step} of 4
       </p>
-    <form
-      onSubmit={handleSubmit(submit, (validationErrors) =>
-        setError(
-          `Please correct the required fields before submitting: ${Object.keys(validationErrors).join(", ")}.`,
-        ),
-      )}
-      className="space-y-4"
-    >
+      <form onSubmit={handleSubmit(submit, onInvalid)} className="space-y-4">
         {step === 1 && (
           <>
             <Input
@@ -270,7 +334,9 @@ export default function Apply() {
                 {...register("motivation")}
               />
               {errors.motivation?.message && (
-                <span className="text-red-700">{errors.motivation.message}</span>
+                <span className="text-red-700">
+                  {errors.motivation.message}
+                </span>
               )}
             </label>
             <Input r={register("sample_url")} l="Sample URL (optional)" />
@@ -312,7 +378,7 @@ export default function Apply() {
               className="btn"
               type="button"
               disabled={step === 2 && (!passport || !travel)}
-              onClick={() => setStep(step + 1)}
+              onClick={next}
             >
               Continue
             </button>
