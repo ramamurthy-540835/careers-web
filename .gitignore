@@ -3,3 +3,6 @@ node_modules
 .env.local
 playwright-report
 test-results
+public/sw.js
+public/workbox-*.js
+*.tsbuildinfo

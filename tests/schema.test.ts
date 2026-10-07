@@ -38,6 +38,16 @@ describe("application schema", () => {
     expect(parsed.certifications[0].name).toBe("Professional ML Engineer");
     expect(parsed.consent_dpdp).toBe(true);
   });
+  it("resolves country names and suggestions to ISO codes", () => {
+    const parsed = applicationSchema.parse({
+      ...valid,
+      country_of_residence: "India (IN)",
+      nationality: "India",
+    });
+    expect(parsed.country_of_residence).toBe("IN");
+    expect(parsed.nationality).toBe("IN");
+    expect(applicationSchema.safeParse({ ...valid, nationality: "ZZ" }).success).toBe(false);
+  });
   it.each([
     "full_name",
     "whatsapp",

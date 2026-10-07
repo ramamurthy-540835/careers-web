@@ -2,7 +2,40 @@
   "name": "nelture-careers",
   "private": true,
   "version": "1.0.0",
-  "scripts": {"dev":"next dev","build":"next build","start":"next start","lint":"next lint","test":"vitest run","test:watch":"vitest","e2e":"playwright test","generate:assetlinks":"tsx scripts/generate-assetlinks.ts"},
-  "dependencies": {"@ducanh2912/next-pwa":"^10.2.9","@google-cloud/bigquery":"^7.9.0","@google-cloud/storage":"^7.14.0","@hookform/resolvers":"^3.9.1","next":"^14.2.22","react":"^18.3.1","react-dom":"^18.3.1","react-hook-form":"^7.54.2","zod":"^3.24.1"},
-  "devDependencies": {"@playwright/test":"^1.50.1","@types/node":"^22.10.5","@types/react":"^18.3.18","autoprefixer":"^10.4.20","eslint":"^8.57.1","eslint-config-next":"^14.2.22","postcss":"^8.4.49","prettier":"^3.4.2","tailwindcss":"^3.4.17","tsx":"^4.19.2","typescript":"^5.7.2","vitest":"^2.1.8"}
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "generate:assetlinks": "tsx scripts/generate-assetlinks.ts"
+  },
+  "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
+    "@google-cloud/bigquery": "^7.9.0",
+    "@google-cloud/storage": "^7.14.0",
+    "@hookform/resolvers": "^3.9.1",
+    "libphonenumber-js": "^1.13.14",
+    "next": "^14.2.22",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.54.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.1",
+    "@types/node": "^22.10.5",
+    "@types/react": "^18.3.18",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.22",
+    "postcss": "^8.4.49",
+    "prettier": "^3.4.2",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
 }

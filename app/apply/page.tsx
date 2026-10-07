@@ -8,6 +8,8 @@ import {
   type ApplicationInput,
 } from "@/lib/application-schema";
 import { useRouter } from "next/navigation";
+import { countries, resolveCountryCode } from "@/lib/countries";
+import { countryCallingCode, normalizeWhatsApp } from "@/lib/phone";
 const defaults: any = {
   preferred_postings: [],
   certifications: [
@@ -59,6 +61,7 @@ export default function Apply() {
     control,
     getValues,
     reset,
+    setValue,
     setError: setFieldError,
     formState: { errors },
   } = useForm<ApplicationInput>({
@@ -99,6 +102,13 @@ export default function Apply() {
     setError("Please correct the highlighted fields.");
   }
   function next() {
+    if (step === 1) {
+      const formatted = normalizeWhatsApp(
+        getValues("whatsapp") || "",
+        getValues("country_of_residence") || "",
+      );
+      setValue("whatsapp", formatted, { shouldValidate: true });
+    }
     const parsed =
       applicationStepSchemas[step as 1 | 2 | 3].safeParse(getValues());
     if (!parsed.success) {
@@ -189,17 +199,28 @@ export default function Apply() {
             <Input r={register("email")} l="Email" e={errors.email?.message} />
             <Input
               r={register("whatsapp")}
-              l="WhatsApp (E.164)"
+              l="WhatsApp number"
+              type="tel"
+              inputMode="tel"
               e={errors.whatsapp?.message}
             />
-            <Input
+            {countryCallingCode(watch("country_of_residence") || "") && (
+              <p className="text-sm">
+                Country calling code: {countryCallingCode(watch("country_of_residence") || "")}. You can enter a local number or a full international number.
+              </p>
+            )}
+            <CountryInput
               r={register("country_of_residence")}
-              l="Country of residence (ISO code)"
+              l="Country of residence"
+              value={watch("country_of_residence")}
+              id="country-of-residence"
               e={errors.country_of_residence?.message}
             />
-            <Input
+            <CountryInput
               r={register("nationality")}
-              l="Nationality (ISO code)"
+              l="Nationality"
+              value={watch("nationality")}
+              id="nationality"
               e={errors.nationality?.message}
             />
           </>
@@ -397,6 +418,22 @@ function Input({ r, l, e, type = "text", ...props }: any) {
     <label className="block">
       {l}
       <input className="field" type={type} {...r} {...props} />
+      {e && <span className="text-red-700">{e}</span>}
+    </label>
+  );
+}
+function CountryInput({ r, l, e, value, id }: any) {
+  const code = resolveCountryCode(value || "");
+  return (
+    <label className="block">
+      {l}
+      <input className="field" list={`${id}-options`} autoComplete="off" {...r} />
+      <datalist id={`${id}-options`}>
+        {countries.map(({ code, name }) => (
+          <option key={code} value={`${name} (${code})`} />
+        ))}
+      </datalist>
+      {code && <span className="block text-sm">ISO code: {code}</span>}
       {e && <span className="text-red-700">{e}</span>}
     </label>
   );

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { resolveCountryCode } from "./countries";
 
 export const roles = [
   "climate_scientist",
@@ -11,8 +12,8 @@ export const roles = [
 const country = z
   .string()
   .trim()
-  .toUpperCase()
-  .regex(/^[A-Z]{2}$/, "Choose a two-letter country code");
+  .transform((value) => resolveCountryCode(value) ?? "")
+  .refine(Boolean, "Choose a country from the suggestions or enter its two-letter code");
 const consent = (message: string) =>
   z.coerce.boolean().refine(Boolean, { message });
 

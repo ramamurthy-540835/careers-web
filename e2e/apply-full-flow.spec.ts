@@ -24,9 +24,11 @@ test("submits a complete application with the full accumulated payload", async (
   await page.goto("/apply");
   await page.getByLabel("Full name").fill("Ada Lovelace");
   await page.getByLabel("Email").fill("ada@example.com");
-  await page.getByLabel("WhatsApp (E.164)").fill("+918925310144");
-  await page.getByLabel("Country of residence (ISO code)").fill("IN");
-  await page.getByLabel("Nationality (ISO code)").fill("IN");
+  await page.getByLabel("WhatsApp number").fill("7845293775");
+  await page.getByLabel("Country of residence").fill("India (IN)");
+  await page.getByLabel("Nationality").fill("India");
+  await expect(page.getByText("ISO code: IN")).toHaveCount(2);
+  await expect(page.getByText(/Country calling code: \+91/)).toBeVisible();
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("I hold a valid passport").check();
   await page.getByLabel("Passport expiry").fill("2030-12-31");
@@ -55,7 +57,7 @@ test("submits a complete application with the full accumulated payload", async (
     /\/apply\/success\/11111111-1111-4111-8111-111111111111/,
   );
   expect(createBody).toMatchObject({
-    whatsapp: "+918925310144",
+    whatsapp: "+917845293775",
     country_of_residence: "IN",
     nationality: "IN",
     consent_dpdp: true,
