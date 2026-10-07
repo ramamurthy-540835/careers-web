@@ -5,4 +5,4 @@ steps:
     args: ['push','asia-south1-docker.pkg.dev/aidirac-503309/careers/web:$BUILD_ID']
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: gcloud
-    args: ['run','deploy','careers-web','--image','asia-south1-docker.pkg.dev/aidirac-503309/careers/web:$BUILD_ID','--region','asia-south1','--tag','preview-v1','--allow-unauthenticated','--service-account','careers-run@aidirac-503309.iam.gserviceaccount.com','--set-env-vars','GCP_PROJECT=aidirac-503309','--min-instances','0','--max-instances','5','--memory','512Mi','--concurrency','80']
+    args: ['run','deploy','careers-web','--image','asia-south1-docker.pkg.dev/aidirac-503309/careers/web:$BUILD_ID','--region','asia-south1','--tag','preview-v1','--allow-unauthenticated','--service-account','careers-run@aidirac-503309.iam.gserviceaccount.com','--set-env-vars','GCP_PROJECT=aidirac-503309,GCS_BUCKET=nelture-careers-cv-prod','--set-secrets','IP_HASH_SALT=IP_HASH_SALT:latest','--min-instances','0','--max-instances','5','--memory','512Mi','--concurrency','80']
