@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { NextRequest } from "next/server";
 import { ZodError } from "zod";
 import { applicationSchema, uploadSchema } from "@/lib/application-schema";
-import { createApplication, event, safeName, signedPut } from "@/lib/google";
+import { createApplication, event, safeName, saveApplicationData, signedPut } from "@/lib/google";
 import { ipHash, noStore, safeError, verifyTurnstile } from "@/lib/security";
 
 function validationFailure(error: ZodError) {
@@ -40,7 +40,10 @@ export async function POST(request: NextRequest) {
     const id = crypto.randomUUID();
     const now = new Date();
     const bucketName = process.env.GCS_BUCKET || "nelture-careers-cv-dev";
-    const path = `cv/${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, "0")}/${id}/${safeName(cv.filename)}`;
+    const month = `${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+    const path = `cv/${month}/${id}/${safeName(cv.filename)}`;
+    const dataPath = `applications/${month}/${id}.json`;
+    const uri = `gs://${bucketName}/${path}`;
     await createApplication({
       id,
       name: application.full_name,
@@ -60,15 +63,23 @@ export async function POST(request: NextRequest) {
       source: application.source,
       utm: application.utm,
       ipHash: ipHash(request),
-      uri: `gs://${bucketName}/${path}`,
+      uri,
       filename: cv.filename,
       mime: cv.mime,
       size: cv.size,
     });
+    await saveApplicationData(dataPath, {
+      application_id: id,
+      status: "pending_upload",
+      submitted_at: now.toISOString(),
+      application,
+      cv: { filename: cv.filename, mime: cv.mime, size: cv.size },
+      cv_gcs_uri: uri,
+    });
     await event(id, "pending_upload", "candidate");
     const [upload_url] = await signedPut(path, cv.mime, cv.size);
     return Response.json(
-      { application_id: id, upload_url, gcs_path: path },
+      { application_id: id, upload_url, gcs_path: path, application_data_gcs_path: dataPath },
       { headers: noStore },
     );
   } catch (error) {

@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 const google = vi.hoisted(() => ({
   createApplication: vi.fn(),
   event: vi.fn(),
+  saveApplicationData: vi.fn(),
   signedPut: vi.fn().mockResolvedValue(["https://upload.example/cv"]),
 }));
 
@@ -51,6 +52,7 @@ beforeEach(() => {
   vi.stubEnv("TURNSTILE_SITE_KEY", "");
   vi.stubEnv("TURNSTILE_SECRET", "");
   google.createApplication.mockClear();
+  google.saveApplicationData.mockClear();
 });
 
 afterEach(() => {
@@ -63,6 +65,7 @@ describe("application bot checks", () => {
     const response = await POST(request(valid));
     expect(response.status).toBe(200);
     expect(google.createApplication).toHaveBeenCalledOnce();
+    expect(google.saveApplicationData).toHaveBeenCalledOnce();
   });
 
   it("rejects a filled spam-trap field", async () => {
