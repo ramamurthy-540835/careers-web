@@ -1,0 +1,13 @@
+[
+  {
+    "origin": [
+      "https://careers-web-624683933018.asia-south1.run.app",
+      "https://careers-web-foovqasysa-el.a.run.app",
+      "https://preview-v1---careers-web-foovqasysa-el.a.run.app",
+      "https://careers.nelture.ai"
+    ],
+    "method": ["PUT"],
+    "responseHeader": ["Content-Type"],
+    "maxAgeSeconds": 3600
+  }
+]
