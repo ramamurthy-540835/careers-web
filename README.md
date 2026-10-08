@@ -12,4 +12,4 @@ Run `npm run build`, `npm test`, `npm run e2e`, `npm audit --production`, and `d
 
 ## Deployment
 
-Run the idempotent `infra/gcloud/setup.sh`. Create a Cloudflare Turnstile widget for the Cloud Run hostname and add its private secret as a version of GCP Secret Manager `TURNSTILE_SECRET`. Deploy with `gcloud builds submit --config cloudbuild.yaml --project aidirac-503309 --substitutions "_TURNSTILE_SITE_KEY=<public-site-key>"`. The public site key is passed to Cloud Run at runtime; the private key is read from Secret Manager. See `infra/README.md` and `infra/twa/README.md`.
+Run the idempotent `infra/gcloud/setup.sh`, then `gcloud builds submit --config cloudbuild.yaml --project aidirac-503309`. The application uses a hidden spam-trap field by default. Cloudflare Turnstile can be enabled later by configuring both `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET` on Cloud Run; a partially configured pair blocks submissions. See `infra/README.md` and `infra/twa/README.md`.

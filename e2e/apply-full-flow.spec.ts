@@ -73,6 +73,7 @@ test("submits a complete application with the full accumulated payload", async (
   );
   expect(createBody).toMatchObject({
     whatsapp: "+917845293775",
+    bot_field: "",
     country_of_residence: "IN",
     nationality: "IN",
     consent_dpdp: true,

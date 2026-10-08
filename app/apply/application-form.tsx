@@ -61,6 +61,7 @@ export default function ApplicationForm({
     [turnstileToken, setTurnstileToken] = useState(""),
     [turnstileError, setTurnstileError] = useState(""),
     [turnstileResetKey, setTurnstileResetKey] = useState(0),
+    [botField, setBotField] = useState(""),
     [hydrated, setHydrated] = useState(false);
   const {
     register,
@@ -142,8 +143,6 @@ export default function ApplicationForm({
   }
   async function submit(data: ApplicationInput) {
     if (!file) return setError("Please attach your CV.");
-    if (!turnstileSiteKey && process.env.NODE_ENV === "production")
-      return setError("Applications are temporarily unavailable. Please try again later.");
     if (turnstileSiteKey && !turnstileToken)
       return setError("Please complete bot verification before submitting.");
     setBusy(true);
@@ -155,6 +154,7 @@ export default function ApplicationForm({
         body: JSON.stringify({
           ...data,
           turnstile_token: turnstileToken,
+          bot_field: botField,
           cv: { filename: file.name, mime: file.type, size: file.size },
         }),
       });
@@ -395,6 +395,17 @@ export default function ApplicationForm({
               r={register("consent_contact")}
               l="I agree to be contacted by email or WhatsApp."
             />
+            <div className="hidden" aria-hidden="true">
+              <label htmlFor="application-website">Website</label>
+              <input
+                id="application-website"
+                name="application-website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={botField}
+                onChange={(event) => setBotField(event.target.value)}
+              />
+            </div>
             {turnstileSiteKey ? (
               <TurnstileWidget
                 key={turnstileResetKey}
@@ -402,10 +413,6 @@ export default function ApplicationForm({
                 onToken={setTurnstileToken}
                 onError={setTurnstileError}
               />
-            ) : process.env.NODE_ENV === "production" ? (
-              <p className="text-red-700" role="alert">
-                Applications are temporarily unavailable. Please try again later.
-              </p>
             ) : null}
             {turnstileError && (
               <p className="text-red-700" role="alert">{turnstileError}</p>
