@@ -22,10 +22,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const application = applicationSchema.parse(body);
     const cv = uploadSchema.parse(body.cv);
+    if (process.env.NODE_ENV === "production" && !process.env.TURNSTILE_SECRET)
+      return safeError("Applications are temporarily unavailable. Please try again later.", 503);
+    if (process.env.NODE_ENV === "production" && !body.turnstile_token)
+      return safeError("Please complete bot verification before submitting.", 400);
     if (
       !(await verifyTurnstile(
         body.turnstile_token,
-        request.headers.get("x-forwarded-for") || "",
+        request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "",
       ))
     )
       return safeError("Bot verification failed. Please try again.", 403);

@@ -5,6 +5,19 @@ test("submits a complete application with the full accumulated payload", async (
 }) => {
   let createBody: Record<string, unknown> | undefined;
   let createResponse: Record<string, unknown> | undefined;
+  await page.route("https://challenges.cloudflare.com/turnstile/v0/api.js*", (route) =>
+    route.fulfill({
+      contentType: "application/javascript",
+      body: `window.turnstile = {
+        render(element, options) {
+          element.textContent = "Verification complete";
+          setTimeout(() => options.callback("test-turnstile-token"), 0);
+          return "test-widget";
+        },
+        remove() {}
+      };`,
+    }),
+  );
   await page.route("**/api/applications", async (route) => {
     createBody = route.request().postDataJSON();
     createResponse = {
@@ -51,6 +64,8 @@ test("submits a complete application with the full accumulated payload", async (
   });
   await page.getByLabel(/I consent to collection/).check();
   await page.getByLabel(/I agree to be contacted/).check();
+  if (process.env.TURNSTILE_SITE_KEY)
+    await expect(page.getByText("Verification complete")).toBeVisible();
   await page.getByRole("button", { name: "Submit application" }).click();
 
   await expect(page).toHaveURL(
@@ -64,6 +79,8 @@ test("submits a complete application with the full accumulated payload", async (
     consent_contact: true,
     certifications: [{ name: "Professional ML Engineer" }],
   });
+  if (process.env.TURNSTILE_SITE_KEY)
+    expect(createBody?.turnstile_token).toBe("test-turnstile-token");
   expect(createResponse).toMatchObject({
     application_id: "11111111-1111-4111-8111-111111111111",
   });
